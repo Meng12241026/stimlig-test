@@ -1,0 +1,418 @@
+// 主控制器：tab 切換、掃描流程、列表 / 統計 / 匯出 各分頁的渲染。
+
+import { CATEGORIES, getCategory } from './categories.js';
+import { parseFull } from './parser.js';
+import { classify } from './classifier.js';
+import { recognize } from './ocr.js';
+import { saveInvoice, getAllInvoices, deleteInvoice } from './storage.js';
+import { formatAmount, formatDate, formatDateShort, toISODate } from './format.js';
+import { drawDonut, colorFor } from './chart.js';
+import { shareCSV, downloadCSV, mailInvoices } from './export.js';
+
+const state = {
+  invoices: [],
+  range: 'month',
+  editing: null, // 目前編輯中的 invoice
+};
+
+// ---- 啟動 ----
+init();
+
+async function init() {
+  registerServiceWorker();
+  setupCategoryDropdown();
+  setupTabBar();
+  setupScanButton();
+  setupModal();
+  setupRangePicker();
+  setupExportButtons();
+  await refresh();
+  showTab('invoices');
+}
+
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(err => {
+        console.warn('Service worker registration failed', err);
+      });
+    });
+  }
+}
+
+function setupCategoryDropdown() {
+  const select = document.getElementById('category-select');
+  for (const cat of CATEGORIES) {
+    const opt = document.createElement('option');
+    opt.value = cat.id;
+    opt.textContent = `${cat.icon} ${cat.name}`;
+    select.appendChild(opt);
+  }
+}
+
+// ---- Tab bar ----
+function setupTabBar() {
+  document.querySelectorAll('.tab-item').forEach(btn => {
+    btn.addEventListener('click', () => showTab(btn.dataset.tab));
+  });
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.hidden = p.dataset.tab !== name;
+  });
+  document.querySelectorAll('.tab-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  if (name === 'stats') renderStats();
+  if (name === 'export') renderExport();
+}
+
+// ---- 掃描入口 ----
+function setupScanButton() {
+  document.getElementById('btn-scan').addEventListener('click', openScanModal);
+  document.querySelectorAll('[data-action="scan"]').forEach(btn => {
+    btn.addEventListener('click', openScanModal);
+  });
+}
+
+function openScanModal() {
+  state.editing = null;
+  document.getElementById('modal-title').textContent = '掃描發票';
+  showScanStart();
+  document.getElementById('btn-delete').hidden = true;
+  document.getElementById('modal-save').hidden = true;
+  document.getElementById('scan-modal').hidden = false;
+}
+
+function setupModal() {
+  document.querySelectorAll('[data-close]').forEach(b => {
+    b.addEventListener('click', closeModal);
+  });
+
+  document.getElementById('camera-input').addEventListener('change', e => {
+    const file = e.target.files?.[0];
+    if (file) handleImageFile(file);
+    e.target.value = '';
+  });
+  document.getElementById('gallery-input').addEventListener('change', e => {
+    const file = e.target.files?.[0];
+    if (file) handleImageFile(file);
+    e.target.value = '';
+  });
+
+  document.getElementById('modal-save').addEventListener('click', handleSave);
+  document.getElementById('btn-delete').addEventListener('click', handleDelete);
+}
+
+function closeModal() {
+  document.getElementById('scan-modal').hidden = true;
+}
+
+function showScanStart() {
+  document.getElementById('scan-start').hidden = false;
+  document.getElementById('scan-processing').hidden = true;
+  document.getElementById('invoice-form').hidden = true;
+}
+
+function showProcessing() {
+  document.getElementById('scan-start').hidden = true;
+  document.getElementById('scan-processing').hidden = false;
+  document.getElementById('invoice-form').hidden = true;
+  document.getElementById('ocr-status').textContent = '辨識中…';
+  document.getElementById('ocr-progress').textContent = '';
+}
+
+function showForm() {
+  document.getElementById('scan-start').hidden = true;
+  document.getElementById('scan-processing').hidden = true;
+  document.getElementById('invoice-form').hidden = false;
+  document.getElementById('modal-save').hidden = false;
+}
+
+// ---- 處理拍照 ----
+async function handleImageFile(file) {
+  showProcessing();
+  const previewURL = URL.createObjectURL(file);
+  const previewImg = document.getElementById('preview-image');
+  previewImg.src = previewURL;
+  previewImg.hidden = false;
+
+  try {
+    const text = await recognize(file, m => {
+      const status = document.getElementById('ocr-status');
+      const prog = document.getElementById('ocr-progress');
+      if (m.status === 'recognizing text') {
+        status.textContent = '辨識中…';
+        prog.textContent = `${Math.round(m.progress * 100)}%`;
+      } else if (m.status === 'loading language traineddata') {
+        status.textContent = '首次使用，下載繁中模型…';
+        prog.textContent = `${Math.round(m.progress * 100)}%`;
+      } else if (m.status === 'initializing api' || m.status === 'initializing tesseract') {
+        status.textContent = '初始化…';
+      }
+    });
+
+    const parsed = parseFull(text);
+    const category = classify(parsed.sellerName, parsed.items);
+
+    const draft = {
+      id: null,
+      sellerName: parsed.sellerName,
+      sellerTaxID: parsed.sellerTaxID,
+      buyerTaxID: parsed.buyerTaxID,
+      invoiceNumber: parsed.invoiceNumber,
+      date: parsed.date || new Date(),
+      totalAmount: parsed.totalAmount || 0,
+      taxAmount: parsed.taxAmount,
+      itemsDescription: parsed.items.join('\n'),
+      category,
+      rawText: parsed.rawText,
+    };
+
+    fillForm(draft);
+    showForm();
+  } catch (err) {
+    console.error(err);
+    alert('辨識失敗：' + (err?.message || err));
+    showScanStart();
+  }
+}
+
+// ---- 表單 ----
+function fillForm(invoice) {
+  state.editing = invoice;
+  const form = document.getElementById('invoice-form');
+  form.sellerName.value = invoice.sellerName || '';
+  form.date.value = toISODate(invoice.date);
+  form.totalAmount.value = invoice.totalAmount || 0;
+  form.taxAmount.value = invoice.taxAmount ?? '';
+  form.invoiceNumber.value = invoice.invoiceNumber || '';
+  form.sellerTaxID.value = invoice.sellerTaxID || '';
+  form.buyerTaxID.value = invoice.buyerTaxID || '';
+  form.category.value = invoice.category || 'other';
+  form.itemsDescription.value = invoice.itemsDescription || '';
+  form.rawText.value = invoice.rawText || '';
+  form.id.value = invoice.id || '';
+}
+
+function readForm() {
+  const form = document.getElementById('invoice-form');
+  return {
+    id: form.id.value || null,
+    sellerName: form.sellerName.value.trim(),
+    date: new Date(form.date.value),
+    totalAmount: parseFloat(form.totalAmount.value) || 0,
+    taxAmount: form.taxAmount.value ? parseFloat(form.taxAmount.value) : null,
+    invoiceNumber: form.invoiceNumber.value.trim() || null,
+    sellerTaxID: form.sellerTaxID.value.trim() || null,
+    buyerTaxID: form.buyerTaxID.value.trim() || null,
+    category: form.category.value,
+    itemsDescription: form.itemsDescription.value,
+    rawText: form.rawText.value,
+  };
+}
+
+async function handleSave() {
+  const data = readForm();
+  if (!data.sellerName) {
+    alert('請填寫店家名稱');
+    return;
+  }
+  await saveInvoice(data);
+  closeModal();
+  await refresh();
+  toast('已儲存');
+}
+
+async function handleDelete() {
+  if (!state.editing?.id) return;
+  if (!confirm('確定要刪除這張發票？')) return;
+  await deleteInvoice(state.editing.id);
+  closeModal();
+  await refresh();
+  toast('已刪除');
+}
+
+function openEdit(invoice) {
+  state.editing = invoice;
+  document.getElementById('modal-title').textContent = '編輯發票';
+  document.getElementById('preview-image').hidden = true;
+  fillForm(invoice);
+  showForm();
+  document.getElementById('btn-delete').hidden = false;
+  document.getElementById('scan-modal').hidden = false;
+}
+
+// ---- 重新載入並渲染 ----
+async function refresh() {
+  state.invoices = await getAllInvoices();
+  renderList();
+  // 統計與匯出分頁，下次切到時才渲染
+  renderExport();
+}
+
+// ---- 發票列表 ----
+function renderList() {
+  const list = document.getElementById('invoice-list');
+  const empty = document.getElementById('invoice-empty');
+  list.innerHTML = '';
+
+  if (state.invoices.length === 0) {
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  for (const inv of state.invoices) {
+    const cat = getCategory(inv.category);
+    const row = document.createElement('button');
+    row.className = 'invoice-row';
+    row.innerHTML = `
+      <div class="invoice-icon">${cat.icon}</div>
+      <div class="invoice-info">
+        <div class="invoice-seller"></div>
+        <div class="invoice-meta"></div>
+      </div>
+      <div class="invoice-amount"></div>
+    `;
+    row.querySelector('.invoice-seller').textContent =
+      inv.sellerName || '（未命名店家）';
+    row.querySelector('.invoice-meta').textContent =
+      `${cat.name} · ${formatDateShort(inv.date)}`;
+    row.querySelector('.invoice-amount').textContent =
+      formatAmount(inv.totalAmount);
+    row.addEventListener('click', () => openEdit(inv));
+    list.appendChild(row);
+  }
+}
+
+// ---- 統計 ----
+function setupRangePicker() {
+  document.querySelectorAll('.range-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.range = btn.dataset.range;
+      document.querySelectorAll('.range-option').forEach(b => {
+        b.classList.toggle('active', b === btn);
+      });
+      renderStats();
+    });
+  });
+}
+
+function filteredInvoices() {
+  const now = new Date();
+  let cutoff = null;
+  switch (state.range) {
+    case 'week':  cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 7); break;
+    case 'month': cutoff = new Date(now); cutoff.setMonth(cutoff.getMonth() - 1); break;
+    case 'year':  cutoff = new Date(now); cutoff.setFullYear(cutoff.getFullYear() - 1); break;
+    default: cutoff = null;
+  }
+  if (!cutoff) return state.invoices;
+  return state.invoices.filter(inv => inv.date >= cutoff);
+}
+
+function renderStats() {
+  const list = filteredInvoices();
+  const total = list.reduce((s, i) => s + Number(i.totalAmount || 0), 0);
+  document.getElementById('stats-total').textContent = formatAmount(total);
+  document.getElementById('stats-count').textContent = `${list.length} 張發票`;
+
+  // 按科目彙總
+  const byCat = {};
+  for (const inv of list) {
+    byCat[inv.category] = (byCat[inv.category] || 0) + Number(inv.totalAmount || 0);
+  }
+  const sorted = Object.entries(byCat)
+    .map(([id, value]) => ({ id, value, ...getCategory(id) }))
+    .sort((a, b) => b.value - a.value);
+
+  // 圓餅圖
+  const canvas = document.getElementById('stats-chart');
+  drawDonut(
+    canvas,
+    sorted.map((it, i) => ({
+      label: it.name,
+      value: it.value,
+      color: colorFor(i),
+    }))
+  );
+
+  // 明細
+  const breakdown = document.getElementById('stats-breakdown');
+  breakdown.innerHTML = '';
+  if (sorted.length === 0) {
+    const p = document.createElement('p');
+    p.textContent = '尚無資料';
+    p.style.textAlign = 'center';
+    p.style.color = 'var(--text-secondary)';
+    p.style.padding = '16px 0';
+    breakdown.appendChild(p);
+    return;
+  }
+  sorted.forEach((it, i) => {
+    const row = document.createElement('div');
+    row.className = 'breakdown-row';
+    row.innerHTML = `
+      <div class="breakdown-icon">${it.icon}</div>
+      <div class="breakdown-label"></div>
+      <div class="breakdown-amount"></div>
+    `;
+    row.querySelector('.breakdown-label').textContent = it.name;
+    row.querySelector('.breakdown-amount').textContent = formatAmount(it.value);
+    row.style.borderLeft = `3px solid ${colorFor(i)}`;
+    row.style.paddingLeft = '8px';
+    breakdown.appendChild(row);
+  });
+}
+
+// ---- 匯出 ----
+function setupExportButtons() {
+  document.getElementById('btn-share').addEventListener('click', async () => {
+    if (state.invoices.length === 0) return;
+    try {
+      const ok = await shareCSV(state.invoices);
+      if (!ok) {
+        downloadCSV(state.invoices);
+        toast('已下載 CSV（此瀏覽器不支援檔案分享）');
+      }
+    } catch (err) {
+      if (err?.name !== 'AbortError') {
+        console.error(err);
+        toast('分享失敗：' + (err?.message || err));
+      }
+    }
+  });
+
+  document.getElementById('btn-download').addEventListener('click', () => {
+    if (state.invoices.length === 0) return;
+    downloadCSV(state.invoices);
+    toast('CSV 已下載');
+  });
+
+  document.getElementById('btn-mail').addEventListener('click', () => {
+    if (state.invoices.length === 0) return;
+    mailInvoices(state.invoices);
+  });
+}
+
+function renderExport() {
+  const total = state.invoices.reduce((s, i) => s + Number(i.totalAmount || 0), 0);
+  document.getElementById('export-count').textContent = state.invoices.length;
+  document.getElementById('export-total').textContent = formatAmount(total);
+  const disabled = state.invoices.length === 0;
+  ['btn-share', 'btn-download', 'btn-mail'].forEach(id => {
+    document.getElementById(id).disabled = disabled;
+  });
+}
+
+// ---- Toast ----
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+}
