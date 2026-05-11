@@ -24,6 +24,9 @@
 
 * { box-sizing: border-box; }
 
+/* 確保 hidden 屬性永遠生效，不被後續 display: flex 等規則蓋掉 */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;
