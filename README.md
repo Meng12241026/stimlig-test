@@ -36,6 +36,69 @@
   - **Email**：開啟 Mail App 並先下載 CSV 供拖入附檔
   - 含 UTF-8 BOM，Excel / Numbers / Sheets 開啟不亂碼
 
+### 自動同步到 Google Sheets（不用登入）
+
+走 **Apps Script Web App** 路線：你建一個 Sheet + 一段 5 行的 Apps Script，PWA 用一條 URL 把每張發票 POST 過去，Apps Script 自動 append 到 Sheet。整個過程不用 OAuth、不用 API key。
+
+**一次性設定**：
+
+1. 新開一個 [Google Sheet](https://sheets.new)，取個名字（例如「發票紀錄」）
+2. 上方選單 → **Extensions → Apps Script**
+3. 把整段預設的 `function myFunction() { ... }` 刪掉，貼上：
+
+   ```javascript
+   function doPost(e) {
+     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+     const data = JSON.parse(e.postData.contents);
+
+     if (data.ping) {
+       return ContentService.createTextOutput(JSON.stringify({ok: true, ping: true}))
+         .setMimeType(ContentService.MimeType.JSON);
+     }
+
+     if (sheet.getLastRow() === 0) {
+       sheet.appendRow(['日期', '店家', '賣方統編', '發票號碼', '會計科目',
+                        '金額', '稅額', '品項', '同步時間']);
+     }
+
+     sheet.appendRow([
+       data.date, data.sellerName, data.sellerTaxID, data.invoiceNumber,
+       data.category, data.totalAmount, data.taxAmount, data.items,
+       new Date()
+     ]);
+
+     return ContentService.createTextOutput(JSON.stringify({ok: true}))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   ```
+
+4. 右上角 **Deploy → New deployment**
+5. ⚙️ icon → **Web app**
+6. 設定：
+   - **Description**：隨意
+   - **Execute as**：`Me`
+   - **Who has access**：`Anyone` ← **重要**
+7. **Deploy** → 第一次會跳授權，照流程點 `Advanced → Go to ... (unsafe) → Allow`（這個「unsafe」警告是因為你自己寫的腳本，給自己用沒問題）
+8. 複製跳出來的 **Web app URL**，類似：
+   ```
+   https://script.google.com/macros/s/AKfycb.../exec
+   ```
+
+**接上 PWA**：
+
+1. 在 App 裡切到「匯出」分頁
+2. 把 URL 貼進「自動同步到 Google Sheets」欄位
+3. 按 **儲存** → 再按 **測試連線**
+4. 看到 ✅ 連線成功就 OK 了
+5. 之後每張新發票存檔，會自動寫一列到你的 Sheet（每張卡片左下角綠點 = 已同步）
+
+**眉角**：
+
+- Apps Script Web App 的 URL 是「公開但不可猜」（網址裡的 `AKfycb...` 是唯一識別碼）。只要不外流，沒人寫得到你的 Sheet。要更安全的話可以在 Apps Script 加一個 `secret` 比對。
+- 改 Apps Script 程式碼後要 **Manage deployments → Edit → Version: New version → Deploy**，否則 URL 還是跑舊版。
+- 編輯舊發票後 **不會** 重新同步（會在 Sheet 變成新的一列重複）。所以建議：先在 PWA 確認資料 → 再存檔 → 才同步。
+- 若 PWA 同步失敗（網路斷線、Apps Script 改版未部署等），那張卡片變紅點。到「匯出」分頁按「同步未同步的發票」即可重試。
+
 ### 部署到 GitHub Pages
 
 1. GitHub repo → **Settings → Pages → Source = GitHub Actions**

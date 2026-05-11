@@ -37,10 +37,30 @@ function tx(mode, fn) {
 export async function saveInvoice(invoice) {
   if (!invoice.id) invoice.id = crypto.randomUUID();
   if (!invoice.createdAt) invoice.createdAt = new Date().toISOString();
+  if (!invoice.syncStatus) invoice.syncStatus = 'unsynced';
   // Date 物件 IndexedDB 可存，但為求 JSON 一致改存 ISO 字串。
   if (invoice.date instanceof Date) invoice.date = invoice.date.toISOString();
   await tx('readwrite', store => store.put(invoice));
   return invoice;
+}
+
+export async function updateSyncStatus(id, status, extra = {}) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE, 'readwrite');
+    const store = transaction.objectStore(STORE);
+    const req = store.get(id);
+    req.onsuccess = () => {
+      const inv = req.result;
+      if (!inv) { resolve(null); return; }
+      inv.syncStatus = status;
+      if (status === 'synced') inv.syncedAt = new Date().toISOString();
+      if (extra.error !== undefined) inv.syncError = extra.error;
+      store.put(inv);
+    };
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
 }
 
 export async function getAllInvoices() {
@@ -48,7 +68,11 @@ export async function getAllInvoices() {
     const req = store.getAll();
     req.onsuccess = () => {
       const result = req.result
-        .map(inv => ({ ...inv, date: new Date(inv.date) }))
+        .map(inv => ({
+          ...inv,
+          date: new Date(inv.date),
+          syncStatus: inv.syncStatus || 'unsynced',
+        }))
         .sort((a, b) => b.date - a.date);
       resolve(result);
     };

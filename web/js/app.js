@@ -4,7 +4,14 @@ import { CATEGORIES, getCategory } from './categories.js';
 import { parseFull } from './parser.js';
 import { classify } from './classifier.js';
 import { recognize } from './ocr.js';
-import { saveInvoice, getAllInvoices, deleteInvoice } from './storage.js';
+import { saveInvoice, getAllInvoices, deleteInvoice, updateSyncStatus } from './storage.js';
+import {
+  getSyncURL,
+  setSyncURL,
+  isSyncConfigured,
+  syncInvoice,
+  pingSync,
+} from './sync.js';
 import { formatAmount, formatDate, formatDateShort, toISODate } from './format.js';
 import { drawDonut, colorFor } from './chart.js';
 import { shareCSV, downloadCSV, mailInvoices } from './export.js';
@@ -31,6 +38,7 @@ async function init() {
   setupModal();
   setupRangePicker();
   setupExportButtons();
+  setupSyncSettings();
   await refresh();
   showTab('invoices');
 }
@@ -322,10 +330,28 @@ async function handleSave() {
     alert('請填寫店家名稱');
     return;
   }
-  await saveInvoice(data);
+  const isNew = !data.id;
+  const saved = await saveInvoice(data);
   closeModal();
   await refresh();
   toast('已儲存');
+  // 新發票且使用者已設定同步 URL → 背景同步
+  if (isNew && isSyncConfigured()) {
+    syncOne(saved.id);
+  }
+}
+
+async function syncOne(id) {
+  const invoice = state.invoices.find(i => i.id === id);
+  if (!invoice) return;
+  try {
+    await syncInvoice(invoice);
+    await updateSyncStatus(id, 'synced');
+  } catch (err) {
+    console.warn('sync failed', err);
+    await updateSyncStatus(id, 'failed', { error: String(err?.message || err) });
+  }
+  await refresh();
 }
 
 async function handleDelete() {
@@ -367,26 +393,39 @@ function renderList() {
   }
   empty.hidden = true;
 
+  const showSync = isSyncConfigured();
   for (const inv of state.invoices) {
     const cat = getCategory(inv.category);
     const row = document.createElement('button');
     row.className = 'invoice-row';
+    const dotHTML = showSync
+      ? `<span class="sync-dot ${inv.syncStatus}" title="${syncStatusLabel(inv.syncStatus)}"></span>`
+      : '';
     row.innerHTML = `
       <div class="invoice-icon">${cat.icon}</div>
       <div class="invoice-info">
         <div class="invoice-seller"></div>
-        <div class="invoice-meta"></div>
+        <div class="invoice-meta">${dotHTML}<span class="invoice-meta-text"></span></div>
       </div>
       <div class="invoice-amount"></div>
     `;
     row.querySelector('.invoice-seller').textContent =
       inv.sellerName || '（未命名店家）';
-    row.querySelector('.invoice-meta').textContent =
+    row.querySelector('.invoice-meta-text').textContent =
       `${cat.name} · ${formatDateShort(inv.date)}`;
     row.querySelector('.invoice-amount').textContent =
       formatAmount(inv.totalAmount);
     row.addEventListener('click', () => openEdit(inv));
     list.appendChild(row);
+  }
+}
+
+function syncStatusLabel(status) {
+  switch (status) {
+    case 'synced':   return '已同步';
+    case 'failed':   return '同步失敗';
+    case 'pending':  return '同步中';
+    default:         return '未同步';
   }
 }
 
@@ -470,6 +509,92 @@ function renderStats() {
   });
 }
 
+// ---- 雲端同步設定 ----
+function setupSyncSettings() {
+  const input = document.getElementById('sync-url-input');
+  const status = document.getElementById('sync-status');
+  input.value = getSyncURL();
+  updateSyncStatusText();
+
+  document.getElementById('btn-sync-save').addEventListener('click', () => {
+    const url = input.value.trim();
+    if (url && !/^https:\/\/script\.google\.com\/macros\//.test(url)) {
+      setSyncStatus('看起來不像 Apps Script Web App URL，請確認', 'err');
+      return;
+    }
+    setSyncURL(url);
+    setSyncStatus(url ? '已儲存' : '已清除', 'ok');
+    renderList();
+    renderExport();
+  });
+
+  document.getElementById('btn-sync-test').addEventListener('click', async () => {
+    setSyncURL(input.value.trim());
+    if (!isSyncConfigured()) {
+      setSyncStatus('請先填入網址', 'err');
+      return;
+    }
+    setSyncStatus('測試中…', 'info');
+    try {
+      await pingSync();
+      setSyncStatus('✅ 連線成功（Apps Script 收到了測試訊息）', 'ok');
+    } catch (err) {
+      setSyncStatus('❌ ' + (err?.message || err), 'err');
+    }
+  });
+
+  document.getElementById('btn-sync-clear').addEventListener('click', () => {
+    input.value = '';
+    setSyncURL('');
+    setSyncStatus('已清除', 'ok');
+    renderList();
+    renderExport();
+  });
+
+  document.getElementById('btn-sync-pending').addEventListener('click', syncAllPending);
+}
+
+function setSyncStatus(text, kind) {
+  const el = document.getElementById('sync-status');
+  el.textContent = text;
+  el.className = 'sync-status ' + (kind || '');
+}
+
+function updateSyncStatusText() {
+  if (!isSyncConfigured()) {
+    setSyncStatus('尚未設定，新發票不會自動上傳', 'info');
+  } else {
+    setSyncStatus('已啟用：新發票會自動上傳到你的試算表', 'ok');
+  }
+}
+
+async function syncAllPending() {
+  const pending = state.invoices.filter(i => i.syncStatus !== 'synced');
+  if (pending.length === 0) {
+    toast('沒有待同步的發票');
+    return;
+  }
+  setSyncStatus(`同步中… 0/${pending.length}`, 'info');
+  let done = 0, failed = 0;
+  for (const inv of pending) {
+    try {
+      await syncInvoice(inv);
+      await updateSyncStatus(inv.id, 'synced');
+    } catch (err) {
+      failed++;
+      await updateSyncStatus(inv.id, 'failed', { error: String(err?.message || err) });
+    }
+    done++;
+    setSyncStatus(`同步中… ${done}/${pending.length}`, 'info');
+  }
+  await refresh();
+  if (failed === 0) {
+    setSyncStatus(`✅ 已全部同步（${done} 張）`, 'ok');
+  } else {
+    setSyncStatus(`完成 ${done - failed} 張，失敗 ${failed} 張`, 'err');
+  }
+}
+
 // ---- 匯出 ----
 function setupExportButtons() {
   document.getElementById('btn-share').addEventListener('click', async () => {
@@ -508,6 +633,16 @@ function renderExport() {
   ['btn-share', 'btn-download', 'btn-mail'].forEach(id => {
     document.getElementById(id).disabled = disabled;
   });
+
+  // 顯示待同步發票卡片
+  const card = document.getElementById('btn-sync-pending');
+  const pending = state.invoices.filter(i => i.syncStatus !== 'synced').length;
+  if (isSyncConfigured() && pending > 0) {
+    card.hidden = false;
+    document.getElementById('sync-pending-count').textContent = `${pending} 張等待同步`;
+  } else {
+    card.hidden = true;
+  }
 }
 
 // ---- Toast ----

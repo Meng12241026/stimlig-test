@@ -70,6 +70,35 @@
           <span class="summary-amount-right" id="export-total">$0</span>
         </div>
       </div>
+
+      <!-- 雲端自動同步 -->
+      <div class="card">
+        <h2>自動同步到 Google Sheets</h2>
+        <p class="card-hint">填入 Apps Script Web App 網址後，每張發票存檔會自動寫一列到你的試算表。設定方式見 README。</p>
+        <input
+          type="url"
+          id="sync-url-input"
+          class="sync-input"
+          placeholder="https://script.google.com/macros/s/.../exec"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        >
+        <div class="sync-actions">
+          <button id="btn-sync-save" class="btn-primary btn-small">儲存</button>
+          <button id="btn-sync-test" class="btn-secondary btn-small">測試連線</button>
+          <button id="btn-sync-clear" class="btn-secondary btn-small">清除</button>
+        </div>
+        <div id="sync-status" class="sync-status"></div>
+        <button id="btn-sync-pending" class="action-card sync-pending-card" hidden>
+          <div class="action-icon" aria-hidden="true">☁️</div>
+          <div class="action-text">
+            <div class="action-title">同步未同步的發票</div>
+            <div class="action-subtitle" id="sync-pending-count">0 張等待同步</div>
+          </div>
+        </button>
+      </div>
+
       <button id="btn-share" class="action-card" disabled>
         <div class="action-icon" aria-hidden="true">📤</div>
         <div class="action-text">
