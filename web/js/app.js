@@ -13,7 +13,12 @@ const state = {
   invoices: [],
   range: 'month',
   editing: null, // 目前編輯中的 invoice
+  cameraStream: null,
 };
+
+// 辨識前縮圖最大邊長。OCR 速度大致與像素數成正比，
+// 4000×3000 的相片縮成 1600×1200 可省約 6 倍時間，準確度幾乎不變。
+const MAX_OCR_DIMENSION = 1600;
 
 // ---- 啟動 ----
 init();
@@ -90,11 +95,13 @@ function setupModal() {
     b.addEventListener('click', closeModal);
   });
 
-  document.getElementById('camera-input').addEventListener('change', e => {
-    const file = e.target.files?.[0];
-    if (file) handleImageFile(file);
-    e.target.value = '';
+  document.getElementById('btn-open-camera').addEventListener('click', startCamera);
+  document.getElementById('btn-camera-cancel').addEventListener('click', () => {
+    stopCamera();
+    showScanStart();
   });
+  document.getElementById('btn-camera-shutter').addEventListener('click', captureFrame);
+
   document.getElementById('gallery-input').addEventListener('change', e => {
     const file = e.target.files?.[0];
     if (file) handleImageFile(file);
@@ -106,28 +113,120 @@ function setupModal() {
 }
 
 function closeModal() {
+  stopCamera();
   document.getElementById('scan-modal').hidden = true;
 }
 
-function showScanStart() {
-  document.getElementById('scan-start').hidden = false;
+function hideAllScanPanels() {
+  document.getElementById('scan-start').hidden = true;
+  document.getElementById('scan-camera').hidden = true;
   document.getElementById('scan-processing').hidden = true;
   document.getElementById('invoice-form').hidden = true;
 }
 
+function showScanStart() {
+  hideAllScanPanels();
+  document.getElementById('scan-start').hidden = false;
+}
+
+function showCameraView() {
+  hideAllScanPanels();
+  document.getElementById('scan-camera').hidden = false;
+}
+
 function showProcessing() {
-  document.getElementById('scan-start').hidden = true;
+  hideAllScanPanels();
   document.getElementById('scan-processing').hidden = false;
-  document.getElementById('invoice-form').hidden = true;
   document.getElementById('ocr-status').textContent = '辨識中…';
   document.getElementById('ocr-progress').textContent = '';
 }
 
 function showForm() {
-  document.getElementById('scan-start').hidden = true;
-  document.getElementById('scan-processing').hidden = true;
+  hideAllScanPanels();
   document.getElementById('invoice-form').hidden = false;
   document.getElementById('modal-save').hidden = false;
+}
+
+// ---- 即時相機 ----
+async function startCamera() {
+  showCameraView();
+  const video = document.getElementById('camera-video');
+  const shutter = document.getElementById('btn-camera-shutter');
+  shutter.disabled = true;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+      audio: false,
+    });
+    state.cameraStream = stream;
+    video.srcObject = stream;
+    await video.play();
+    shutter.disabled = false;
+  } catch (err) {
+    console.error(err);
+    stopCamera();
+    showScanStart();
+    alert('無法開啟相機：' + (err?.message || err) + '\n\n請改用「從相簿選取」。');
+  }
+}
+
+function stopCamera() {
+  if (state.cameraStream) {
+    state.cameraStream.getTracks().forEach(t => t.stop());
+    state.cameraStream = null;
+  }
+  const video = document.getElementById('camera-video');
+  video.srcObject = null;
+}
+
+async function captureFrame() {
+  const video = document.getElementById('camera-video');
+  if (!video.videoWidth) return;
+  const canvas = document.getElementById('camera-canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise(resolve =>
+    canvas.toBlob(resolve, 'image/jpeg', 0.92)
+  );
+  stopCamera();
+  if (blob) handleImageFile(blob);
+}
+
+// 把圖片縮到最長邊 MAX_OCR_DIMENSION 以加快 OCR。
+async function resizeForOCR(source) {
+  const url = source instanceof Blob
+    ? URL.createObjectURL(source)
+    : source;
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = url;
+    });
+    const longest = Math.max(img.naturalWidth, img.naturalHeight);
+    if (longest <= MAX_OCR_DIMENSION) return source;
+    const scale = MAX_OCR_DIMENSION / longest;
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    return await new Promise(resolve =>
+      canvas.toBlob(resolve, 'image/jpeg', 0.85)
+    );
+  } finally {
+    if (source instanceof Blob && typeof url === 'string') {
+      URL.revokeObjectURL(url);
+    }
+  }
 }
 
 // ---- 處理拍照 ----
@@ -139,7 +238,11 @@ async function handleImageFile(file) {
   previewImg.hidden = false;
 
   try {
-    const text = await recognize(file, m => {
+    // 先縮小再丟給 OCR，速度大幅提升
+    document.getElementById('ocr-status').textContent = '處理圖片中…';
+    const resized = await resizeForOCR(file);
+
+    const text = await recognize(resized, m => {
       const status = document.getElementById('ocr-status');
       const prog = document.getElementById('ocr-progress');
       if (m.status === 'recognizing text') {
