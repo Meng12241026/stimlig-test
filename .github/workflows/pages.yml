@@ -23,8 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Build combined site
+        run: |
+          mkdir -p dist
+          cp -r web/. dist/
+          mkdir -p dist/japan-trip
+          cp -r japan-trip/. dist/japan-trip/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: web
+          path: dist
       - id: deployment
         uses: actions/deploy-pages@v4
