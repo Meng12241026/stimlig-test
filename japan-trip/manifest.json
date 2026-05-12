@@ -1,0 +1,19 @@
+{
+  "name": "阿民阿慧遊東京",
+  "short_name": "東京 5 日",
+  "description": "2026.05.14 – 05.18 東京 5 日行程",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdfaf5",
+  "theme_color": "#b8323f",
+  "lang": "zh-Hant",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
