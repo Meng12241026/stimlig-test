@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#b8323f">
+<title>東京 5 日 ・ 阿民阿慧遊東京 (5/14 – 5/18)</title>
+<style>
+  :root {
+    --red: #b8323f;
+    --red-dark: #8d1b25;
+    --gold: #c9a96e;
+    --ink: #1f2126;
+    --paper: #fdfaf5;
+    --paper-2: #f5efe4;
+    --line: #e5dccb;
+    --muted: #6b6862;
+    --shadow: 0 6px 20px rgba(30, 20, 10, 0.08);
+    --shadow-hover: 0 12px 28px rgba(30, 20, 10, 0.14);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    max-width: 980px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+  }
+
+  /* ─── Hero ─── */
+  .hero {
+    background: linear-gradient(135deg, #b8323f 0%, #8d1b25 100%);
+    color: white;
+    padding: 36px 24px 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    right: -40px; top: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: -60px; bottom: -60px;
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(201,169,110,0.25), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-kicker {
+    font-size: 13px;
+    letter-spacing: 4px;
+    opacity: 0.85;
+    margin-bottom: 6px;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .hero-sub {
+    opacity: 0.92;
+    font-size: 14px;
+    position: relative;
+  }
+  .hero-meta {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+  .hero-chip {
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .hero-chip:hover { background: rgba(255,255,255,0.28); }
+
+  /* ─── Day tabs ─── */
+  .day-tabs {
+    display: flex;
+    overflow-x: auto;
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    scrollbar-width: none;
+  }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab {
+    flex: 1;
+    min-width: 110px;
+    padding: 14px 10px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s;
+    font-family: inherit;
+    color: var(--muted);
+  }
+  .day-tab:hover { background: rgba(184, 50, 63, 0.05); }
+  .day-tab.active {
+    border-bottom-color: var(--red);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .day-tab-num {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .day-tab.active .day-tab-num { color: var(--red); }
+  .day-tab-date {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .day-tab-title {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+
+  /* ─── Day panel ─── */
+  .day-panel { display: none; padding: 20px 18px; }
+  .day-panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+
+  .day-header {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .day-header h2 {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .day-header-sub {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* ─── Sub-tabs (category) ─── */
+  .cat-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    background: var(--paper-2);
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .cat-tab {
+    flex: 1;
+    padding: 9px 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .cat-tab.active {
+    background: white;
+    color: var(--red);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .cat-panel { display: none; }
+  .cat-panel.active { display: block; }
+
+  /* ─── Cards grid ─── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 1px solid var(--line);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+  }
+  .card-image {
+    position: relative;
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .card-image .placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 54px;
+  }
+  .card-emoji-overlay {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    z-index: 2;
+  }
+  .card-body {
+    padding: 12px 14px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--ink);
+    line-height: 1.35;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.45;
+    flex: 1;
+  }
+  .card-meta {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .card-price { color: var(--red); }
+  .card-link {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* gradient backgrounds for different types */
+  .bg-shrine    { background: linear-gradient(135deg, #d99696, #b8323f); }
+  .bg-shopping  { background: linear-gradient(135deg, #e8c8a0, #c9a96e); }
+  .bg-view      { background: linear-gradient(135deg, #91b4d2, #5c7b9f); }
+  .bg-art       { background: linear-gradient(135deg, #b8a5d2, #7c5fa5); }
+  .bg-garden    { background: linear-gradient(135deg, #b3d49a, #6c9c4f); }
+  .bg-sushi     { background: linear-gradient(135deg, #f5b8b8, #d96a6a); }
+  .bg-yakiniku  { background: linear-gradient(135deg, #d49a7a, #a8593a); }
+  .bg-noodle    { background: linear-gradient(135deg, #f0c870, #d39830); }
+  .bg-dessert   { background: linear-gradient(135deg, #f5c6d8, #de6e92); }
+  .bg-teppan    { background: linear-gradient(135deg, #b39884, #6e4d35); }
+  .bg-tonkatsu  { background: linear-gradient(135deg, #e8c8a0, #b07d4a); }
+  .bg-tendon    { background: linear-gradient(135deg, #f0c878, #c98a3a); }
+  .bg-unagi     { background: linear-gradient(135deg, #d4a574, #8a5a2c); }
+  .bg-yoshoku   { background: linear-gradient(135deg, #f0bfa0, #c98562); }
+  .bg-station   { background: linear-gradient(135deg, #9fb8d4, #4c6d96); }
+  .bg-watch     { background: linear-gradient(135deg, #d4d4d4, #888888); }
+  .bg-default   { background: linear-gradient(135deg, #d4c4a8, #8a7a5a); }
+
+  /* ─── Route timeline ─── */
+  .route {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .route-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .route-item:last-child { border-bottom: none; }
+  .route-dot {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--red);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .route-content { flex: 1; }
+  .route-time {
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .route-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .route-desc {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .route-title a { color: var(--ink); text-decoration: none; }
+  .route-title a:hover { color: var(--red); }
+
+  /* ─── Info banner ─── */
+  .info-banner {
+    background: linear-gradient(135deg, #fdf7e8, #f5edd4);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: var(--ink);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .info-banner-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .info-banner strong { color: var(--red-dark); }
+
+  /* ─── Section heading ─── */
+  .section-heading {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    margin-top: 18px;
+    padding-left: 10px;
+    border-left: 3px solid var(--gold);
+  }
+  .section-heading:first-child { margin-top: 0; }
+
+  /* ─── Footer ─── */
+  footer {
+    text-align: center;
+    padding: 30px 20px 20px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  footer .signature {
+    color: var(--red);
+    font-size: 14px;
+    letter-spacing: 6px;
+    margin-top: 6px;
+  }
+
+  /* ─── Mobile ─── */
+  @media (max-width: 480px) {
+    .hero { padding: 28px 18px 24px; }
+    .hero h1 { font-size: 22px; }
+    .day-tab { min-width: 88px; padding: 12px 6px; }
+    .day-tab-date { font-size: 13px; }
+    .day-tab-title { font-size: 10px; }
+    .cards { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 10px; }
+    .card-image { height: 100px; }
+    .card-image .placeholder { font-size: 40px; }
+    .card-body { padding: 10px 12px 12px; }
+    .card-title { font-size: 14px; }
+    .day-panel { padding: 16px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-kicker">TOKYO ・ 阿民阿慧遊東京</div>
+  <h1>東京 5 日漫遊</h1>
+  <div class="hero-sub">5/14 (四) – 5/18 (一) ・ 銀座 ・ 淺草 ・ 表參道 ・ 涉谷</div>
+  <div class="hero-meta">
+    <a class="hero-chip" target="_blank" rel="noopener"
+       href="https://www.google.com/maps/search/?api=1&query=Villa+Fontaine+Grand+%E6%9D%B1%E4%BA%AC%E6%B1%90%E7%95%99+%E6%B8%AF%E5%8C%BA%E6%9D%B1%E6%96%B0%E6%A9%8B1-9-2">
+      🏨 Villa Fontaine Grand 汐留
+    </a>
+    <a class="hero-chip" target="_blank" rel="noopener"
+       href="https://www.google.com/maps/search/?api=1&query=%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF+%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB+%E5%9B%BD%E9%9A%9B%E7%B7%9A">
+      ✈️ 羽田 T3 國際線
+    </a>
+  </div>
+</header>
+
+<!-- Day Tabs -->
+<nav class="day-tabs" role="tablist" id="dayTabs">
+  <button class="day-tab active" data-day="1" role="tab">
+    <div class="day-tab-num">DAY 01</div>
+    <div class="day-tab-date">5/14 四</div>
+    <div class="day-tab-title">抵達 ・ 銀座</div>
+  </button>
+  <button class="day-tab" data-day="2" role="tab">
+    <div class="day-tab-num">DAY 02</div>
+    <div class="day-tab-date">5/15 五</div>
+    <div class="day-tab-title">淺草 ・ teamLab</div>
+  </button>
+  <button class="day-tab" data-day="3" role="tab">
+    <div class="day-tab-num">DAY 03</div>
+    <div class="day-tab-date">5/16 六</div>
+    <div class="day-tab-title">明治神宮 ・ 涉谷</div>
+  </button>
+  <button class="day-tab" data-day="4" role="tab">
+    <div class="day-tab-num">DAY 04</div>
+    <div class="day-tab-date">5/17 日</div>
+    <div class="day-tab-title">浜離宮 ・ 銀座</div>
+  </button>
+  <button class="day-tab" data-day="5" role="tab">
+    <div class="day-tab-num">DAY 05</div>
+    <div class="day-tab-date">5/18 一</div>
+    <div class="day-tab-title">採買 ・ 歸途</div>
+  </button>
+</nav>
+
+<!-- ═════════════ DAY 1 ═════════════ -->
+<section class="day-panel active" data-day="1">
+  <div class="day-header">
+    <h2>抵達日 ・ 銀座漫步</h2>
+    <div class="day-header-sub">飯店周邊步行範圍 ・ 銀座中央通 ・ 第一晚晚餐</div>
+  </div>
+
+  <div class="cat-tabs" role="tablist">
+    <button class="cat-tab active" data-cat="route">🚶 路線</button>
+    <button class="cat-tab" data-cat="spot">📍 景點</button>
+    <button class="cat-tab" data-cat="food">🍽️ 美食</button>
+  </div>
+
+  <!-- Day 1 Route -->
+  <div class="cat-panel active" data-cat="route">
+    <div class="info-banner">
+      <span class="info-banner-icon">💡</span>
+      <div>建議從飯店步行銀座中央通，由北至南漫遊，最後回到飯店樓上享用晚餐。</div>
+    </div>
+    <div class="route">
+      <div class="route-item">
+        <div class="route-dot">1</div>
+        <div class="route-content">
+          <div class="route-time">起點 ・ 從飯店走 1 分</div>
+          <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E3%82%AB%E3%83%AC%E3%83%83%E3%82%BF%E6%B1%90%E7%95%99+Caretta+Shiodome">Caretta 汐留</a></div>
+          <div class="route-desc">1F 廣場 + 46F 展望台</div>
+        </div>
+      </div>
+      <div class="route-item">
+        <div class="route-dot">2</div>
+        <div class="route-content">
+          <div class="route-time">銀座中央通起點</div>
+          <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7%E4%B8%AD%E5%A4%AE%E9%80%9A%E3%82%8A+%E5%92%8C%E5%85%89%E6%9C%AC%E5%BA%97">和光本店 ・ 銀座 4 丁目鐘樓</a></div>
+          <div class="route-desc">走 10 分鐘到 GINZA SIX</div>
+        </div>
+      </div>
+      <div class="route-item">
+        <div class="route-dot">3</div>
+        <div class="route-content">
+          <div class="route-time">銀座 6 丁目</div>
+          <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=GINZA+SIX">GINZA SIX</a></div>
+          <div class="route-desc">4F 蔦屋書店 / 中央 ATRIUM 季節展</div>
+        </div>
+      </div>
+      <div class="route-item">
+        <div class="route-dot">4</div>
+        <div class="route-content">
+          <div class="route-time">百年文具殿堂</div>
+          <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E4%BC%8A%E6%9D%B1%E5%B1%8B+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97+G.Itoya">伊東屋 銀座本店</a></div>
+          <div class="route-desc">9F 喫茶可休息</div>
+        </div>
+      </div>
+      <div class="route-item">
+        <div class="route-dot">5</div>
+        <div class="route-content">
+          <div class="route-time">建築欣賞 ・ 5 分速逛</div>
+          <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E3%83%A1%E3%82%BE%E3%83%B3%E3%82%A8%E3%83%AB%E3%83%A1%E3%82%B9">Maison Hermès Forum</a></div>
+          <div class="route-desc">Renzo Piano 玻璃磚建築 ・ 8F 免費展</div>
+        </div>
+      </div>
+      <div class="route-item">
+        <div class="route-dot">🍽️</div>
+        <div class="route-content">
+          <div class="route-time">第一晚晚餐</div>
+          <div class="route-title">從「美食」頁籤挑一家</div>
+          <div class="route-desc">推薦：響 Hibiki Caretta 46F (飯店樓上、最不費力)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Day 1 Spots -->
+  <div class="cat-panel" data-cat="spot">
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%82%AB%E3%83%AC%E3%83%83%E3%82%BF%E6%B1%90%E7%95%99+Caretta+Shiodome">
+        <div class="card-image bg-view">
+          <div class="placeholder">🏙️</div>
+          <span class="card-emoji-overlay">展望</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Caretta 汐留</div>
+          <div class="card-desc">1F 廣場 + 46F 免費展望台，可眺望東京塔、彩虹大橋。</div>
+          <div class="card-meta"><span>從飯店走 1 分</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7%E4%B8%AD%E5%A4%AE%E9%80%9A%E3%82%8A+%E5%92%8C%E5%85%89%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-shopping">
+          <div class="placeholder">🕰️</div>
+          <span class="card-emoji-overlay">地標</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">和光本店</div>
+          <div class="card-desc">銀座 4 丁目鐘樓，銀座中央通的起點地標。</div>
+          <div class="card-meta"><span>銀座中央通起點</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=GINZA+SIX">
+        <div class="card-image bg-shopping">
+          <div class="placeholder">🛍️</div>
+          <span class="card-emoji-overlay">百貨</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">GINZA SIX</div>
+          <div class="card-desc">4F 蔦屋書店、中央 ATRIUM 季節裝置藝術。</div>
+          <div class="card-meta"><span>銀座 6 丁目</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E4%BC%8A%E6%9D%B1%E5%B1%8B+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97+G.Itoya">
+        <div class="card-image bg-art">
+          <div class="placeholder">✒️</div>
+          <span class="card-emoji-overlay">文具</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">伊東屋 銀座本店</div>
+          <div class="card-desc">百年文具殿堂，9F 喫茶可休息。</div>
+          <div class="card-meta"><span>銀座中央通</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E3%83%A1%E3%82%BE%E3%83%B3%E3%82%A8%E3%83%AB%E3%83%A1%E3%82%B9">
+        <div class="card-image bg-art">
+          <div class="placeholder">🏛️</div>
+          <span class="card-emoji-overlay">建築</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Maison Hermès Forum</div>
+          <div class="card-desc">Renzo Piano 玻璃磚建築，8F 有免費藝術展。</div>
+          <div class="card-meta"><span>5 分速逛</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Day 1 Food -->
+  <div class="cat-panel" data-cat="food">
+    <div class="info-banner">
+      <span class="info-banner-icon">🍴</span>
+      <div>第一晚晚餐推薦 ・ 都在飯店步行 10 分鐘內 ・ 久兵衛、うかい亭等高級店建議提前訂位</div>
+    </div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E4%B9%85%E5%85%B5%E8%A1%9B+%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-sushi">
+          <div class="placeholder">🍣</div>
+          <span class="card-emoji-overlay">壽司</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">銀座 久兵衛 本店</div>
+          <div class="card-desc">江戶前壽司殿堂，建議訂位。</div>
+          <div class="card-meta"><span class="card-price">¥10,000</span><span class="card-link">走 12 分</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E7%85%89%E7%93%A6%E4%BA%AD+%E9%8A%80%E5%BA%A7">
+        <div class="card-image bg-yoshoku">
+          <div class="placeholder">🍳</div>
+          <span class="card-emoji-overlay">洋食</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">煉瓦亭</div>
+          <div class="card-desc">1895 創業，蛋包飯元祖店。</div>
+          <div class="card-meta"><span class="card-price">¥2,500</span><span class="card-link">走 12 分</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E8%B3%87%E7%94%9F%E5%A0%82%E3%83%91%E3%83%BC%E3%83%A9%E3%83%BC+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-yoshoku">
+          <div class="placeholder">🍛</div>
+          <span class="card-emoji-overlay">洋食</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">資生堂 Parlour 銀座本店</div>
+          <div class="card-desc">老舗洋食 ・ 蛋包飯、咖哩飯。</div>
+          <div class="card-meta"><span class="card-price">¥4,000</span><span class="card-link">走 10 分</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E9%B0%BB+%E3%81%AF%E3%81%97%E6%9C%AC">
+        <div class="card-image bg-unagi">
+          <div class="placeholder">🍱</div>
+          <span class="card-emoji-overlay">鰻魚</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">銀座 鰻 はし本</div>
+          <div class="card-desc">鰻魚飯老店。</div>
+          <div class="card-meta"><span class="card-price">¥4,500</span><span class="card-link">走 10 分</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%9F%BF+%E3%82%AB%E3%83%AC%E3%83%83%E3%82%BF%E6%B1%90%E7%95%99+Hibiki+Caretta">
+        <div class="card-image bg-view">
+          <div class="placeholder">🌆</div>
+          <span class="card-emoji-overlay">景觀</span>
+        </div>
+        <div class="card-body">
+          <div class="card-title">響 Hibiki Caretta 46F</div>
+          <div class="card-desc">東京塔景觀和食 ・ 飯店樓上，最不費力。</div>
+          <div class="card-meta"><span class="card-price">¥4,500</span><span class="card-link">飯店樓上</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ DAY 2 ═════════════ -->
+<section class="day-panel" data-day="2">
+  <div class="day-header">
+    <h2>淺草寺 + 三社祭大行列 + teamLab</h2>
+    <div class="day-header-sub">上午淺草 ・ 13:00–15:30 三社祭 ・ 18:30 teamLab Planets</div>
+  </div>
+
+  <div class="cat-tabs" role="tablist">
+    <button class="cat-tab active" data-cat="route">🚶 路線</button>
+    <button class="cat-tab" data-cat="spot">📍 景點</button>
+    <button class="cat-tab" data-cat="food">🍽️ 美食</button>
+  </div>
+
+  <div class="cat-panel active" data-cat="route">
+    <div class="info-banner">
+      <span class="info-banner-icon">🎌</span>
+      <div><strong>三社祭時程：</strong>13:00 起點浅草見附跡 → 13:30 雷門 → 15:30 本堂前抵達儀式。請先卡好位置！</div>
+    </div>
+    <div class="route">
+      <div class="route-item"><div class="route-dot">上</div><div class="route-content">
+        <div class="route-time">上午 ・ 淺草站走 5 分</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E9%9B%B7%E9%96%80+%E6%B5%85%E8%8D%89">雷門</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E4%BB%B2%E8%A6%8B%E4%B8%96%E9%80%9A+%E6%B5%85%E8%8D%89">仲見世通</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%85%E8%8D%89%E5%AF%BA+%E6%9C%AC%E5%A0%82">淺草寺 本堂</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%85%E8%8D%89%E7%A5%9E%E7%A4%BE+%E4%B8%89%E7%A4%BE%E6%A7%98">浅草神社</a></div>
+        <div class="route-desc">參道商店街 250m，628 年創建的淺草寺。</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">午</div><div class="route-content">
+        <div class="route-time">12:00 ・ 淺草老舖午餐</div>
+        <div class="route-title">挑一家淺草老店</div>
+        <div class="route-desc">大黒家天麩羅 / 駒形どぜう / 淺草今半 別館 (見「美食」頁籤)</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">13</div><div class="route-content">
+        <div class="route-time">13:00 大行列出發</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%85%E8%8D%89%E8%A6%8B%E9%99%84%E8%B7%A1+%E5%8F%B0%E6%9D%B1%E5%8C%BA">浅草見附跡 (起點)</a></div>
+        <div class="route-desc">13:30 約經過雷門 (最佳觀賞點 1)</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">15</div><div class="route-content">
+        <div class="route-time">15:30 抵達儀式</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%85%E8%8D%89%E5%AF%BA+%E6%9C%AC%E5%A0%82%E5%89%8D">本堂前 (最佳觀賞點 2)</a></div>
+        <div class="route-desc">行列到達淺草寺本堂前的儀式。</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">夜</div><div class="route-content">
+        <div class="route-time">晚上 ・ 飯店走 3 分</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E3%82%86%E3%82%8A%E3%81%8B%E3%82%82%E3%82%81+%E6%B1%90%E7%95%99%E9%A7%85">ゆりかもめ汐留駅</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=teamLab+Planets+TOKYO+%E8%B1%8A%E6%B4%B2">teamLab Planets TOKYO</a></div>
+        <div class="route-desc">18:30 入場 ・ 新豊洲駅 1 分</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="spot">
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%9B%B7%E9%96%80+%E6%B5%85%E8%8D%89">
+        <div class="card-image bg-shrine"><div class="placeholder">⛩️</div><span class="card-emoji-overlay">地標</span></div>
+        <div class="card-body">
+          <div class="card-title">雷門</div>
+          <div class="card-desc">淺草地標、三社祭大行列必經點。</div>
+          <div class="card-meta"><span>淺草站 5 分</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E4%BB%B2%E8%A6%8B%E4%B8%96%E9%80%9A+%E6%B5%85%E8%8D%89">
+        <div class="card-image bg-shopping"><div class="placeholder">🏮</div><span class="card-emoji-overlay">商店街</span></div>
+        <div class="card-body">
+          <div class="card-title">仲見世通</div>
+          <div class="card-desc">雷門到寶藏門 250m 參道商店街。</div>
+          <div class="card-meta"><span>淺草老街</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%85%E8%8D%89%E5%AF%BA+%E6%9C%AC%E5%A0%82">
+        <div class="card-image bg-shrine"><div class="placeholder">🛕</div><span class="card-emoji-overlay">寺廟</span></div>
+        <div class="card-body">
+          <div class="card-title">淺草寺 本堂</div>
+          <div class="card-desc">628 年創建，東京最古老寺院。</div>
+          <div class="card-meta"><span>淺草</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%85%E8%8D%89%E7%A5%9E%E7%A4%BE+%E4%B8%89%E7%A4%BE%E6%A7%98">
+        <div class="card-image bg-shrine"><div class="placeholder">⛩️</div><span class="card-emoji-overlay">神社</span></div>
+        <div class="card-body">
+          <div class="card-title">浅草神社</div>
+          <div class="card-desc">三社祭主辦地，在本堂東側 30m。</div>
+          <div class="card-meta"><span>本堂東側</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=teamLab+Planets+TOKYO+%E8%B1%8A%E6%B4%B2">
+        <div class="card-image bg-art"><div class="placeholder">🌌</div><span class="card-emoji-overlay">藝術</span></div>
+        <div class="card-body">
+          <div class="card-title">teamLab Planets TOKYO</div>
+          <div class="card-desc">沉浸式數位藝術。18:30 入場。</div>
+          <div class="card-meta"><span>新豊洲駅 1 分</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="food">
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%A4%A7%E9%BB%92%E5%AE%B6%E5%A4%A9%E9%BA%A9%E7%BE%85+%E6%B5%85%E8%8D%89">
+        <div class="card-image bg-tendon"><div class="placeholder">🍤</div><span class="card-emoji-overlay">天丼</span></div>
+        <div class="card-body">
+          <div class="card-title">大黒家天麩羅</div>
+          <div class="card-desc">1887 年創業，黑色醬汁招牌天丼。不訂位。</div>
+          <div class="card-meta"><span>淺草老舖</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%A7%92%E5%BD%A2%E3%81%A9%E3%81%9C%E3%81%86+%E6%B5%85%E8%8D%89">
+        <div class="card-image bg-unagi"><div class="placeholder">🍲</div><span class="card-emoji-overlay">泥鰍鍋</span></div>
+        <div class="card-body">
+          <div class="card-title">駒形どぜう</div>
+          <div class="card-desc">1801 年泥鰍鍋老店，榻榻米座位。</div>
+          <div class="card-meta"><span>03-3842-4001</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%85%E8%8D%89%E4%BB%8A%E5%8D%8A+%E5%88%A5%E9%A4%A8">
+        <div class="card-image bg-yakiniku"><div class="placeholder">🥩</div><span class="card-emoji-overlay">壽喜燒</span></div>
+        <div class="card-body">
+          <div class="card-title">淺草今半 別館</div>
+          <div class="card-desc">1895 創業，老舗壽喜燒。建議訂位。</div>
+          <div class="card-meta"><span>03-3841-1114</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E7%AF%9D+%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-noodle"><div class="placeholder">🍜</div><span class="card-emoji-overlay">拉麵</span></div>
+        <div class="card-body">
+          <div class="card-title">銀座 篝</div>
+          <div class="card-desc">米其林必比登推介 ・ 雞白湯拉麵。回程拉麵首選。</div>
+          <div class="card-meta"><span class="card-price">¥1,500</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ DAY 3 ═════════════ -->
+<section class="day-panel" data-day="3">
+  <div class="day-header">
+    <h2>明治神宮 + 表參道 + 涉谷</h2>
+    <div class="day-header-sub">上午神宮森林散步 ・ 表參道午餐 ・ 涉谷十字路口 ・ 燒肉晚餐</div>
+  </div>
+
+  <div class="cat-tabs" role="tablist">
+    <button class="cat-tab active" data-cat="route">🚶 路線</button>
+    <button class="cat-tab" data-cat="spot">📍 景點</button>
+    <button class="cat-tab" data-cat="food">🍽️ 美食</button>
+  </div>
+
+  <div class="cat-panel active" data-cat="route">
+    <div class="route">
+      <div class="route-item"><div class="route-dot">上</div><div class="route-content">
+        <div class="route-time">上午 ・ 原宿駅 2 分</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%98%8E%E6%B2%BB%E7%A5%9E%E5%AE%AE+%E5%8E%9F%E5%AE%BF%E5%8F%A3">明治神宮 原宿口</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%98%8E%E6%B2%BB%E7%A5%9E%E5%AE%AE+%E5%BE%A1%E6%9C%AC%E6%AE%BF">御本殿</a></div>
+        <div class="route-desc">北參道入口，走 10 分到本殿。</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">午</div><div class="route-content">
+        <div class="route-time">午餐 ・ 表參道散步</div>
+        <div class="route-title">炸豬排或抹茶聖代</div>
+        <div class="route-desc">まい泉 青山本店 / 茶寮 都路里 / 虎屋 (見「美食」頁籤)</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">下</div><div class="route-content">
+        <div class="route-time">下午 ・ 青山 → 表參道</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=AMORE+Vintage+%E9%9D%92%E5%B1%B1">AMORE 青山店</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%A0%B9%E6%B4%A5%E7%BE%8E%E8%A1%93%E9%A4%A8">根津美術館</a></div>
+        <div class="route-desc">亞洲最大 Vintage CHANEL → 隈研吾建築美術館。</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">傍</div><div class="route-content">
+        <div class="route-time">傍晚 ・ 涉谷</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E5%BF%A0%E7%8A%AC%E3%83%8F%E3%83%81%E5%85%AC%E5%83%8F+%E6%B8%8B%E8%B0%B7">忠犬八公像</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%B8%8B%E8%B0%B7%E3%82%B9%E3%82%AF%E3%83%A9%E3%83%B3%E3%83%96%E3%83%AB%E4%BA%A4%E5%B7%AE%E7%82%B9">涉谷十字路口</a></div>
+        <div class="route-desc">最佳俯視角度：MAGNET 7F。</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">夜</div><div class="route-content">
+        <div class="route-time">晚餐 ・ 涉谷燒肉</div>
+        <div class="route-title">USHIHACHI / トラジ</div>
+        <div class="route-desc">必訂位 ¥6,000–8,000</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="spot">
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%98%8E%E6%B2%BB%E7%A5%9E%E5%AE%AE+%E5%8E%9F%E5%AE%BF%E5%8F%A3">
+        <div class="card-image bg-shrine"><div class="placeholder">🌳</div><span class="card-emoji-overlay">入口</span></div>
+        <div class="card-body">
+          <div class="card-title">明治神宮 原宿口</div>
+          <div class="card-desc">北參道入口，原宿駅 2 分。</div>
+          <div class="card-meta"><span>森林參道</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%98%8E%E6%B2%BB%E7%A5%9E%E5%AE%AE+%E5%BE%A1%E6%9C%AC%E6%AE%BF">
+        <div class="card-image bg-shrine"><div class="placeholder">⛩️</div><span class="card-emoji-overlay">本殿</span></div>
+        <div class="card-body">
+          <div class="card-title">明治神宮 御本殿</div>
+          <div class="card-desc">參道走 10 分。明治天皇祭祀地。</div>
+          <div class="card-meta"><span>森林深處</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=AMORE+Vintage+%E9%9D%92%E5%B1%B1">
+        <div class="card-image bg-shopping"><div class="placeholder">👜</div><span class="card-emoji-overlay">Vintage</span></div>
+        <div class="card-body">
+          <div class="card-title">AMORE 青山店</div>
+          <div class="card-desc">亞洲最大 Vintage CHANEL 選物店。</div>
+          <div class="card-meta"><span>青山</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%A0%B9%E6%B4%A5%E7%BE%8E%E8%A1%93%E9%A4%A8">
+        <div class="card-image bg-art"><div class="placeholder">🖼️</div><span class="card-emoji-overlay">美術館</span></div>
+        <div class="card-body">
+          <div class="card-title">根津美術館</div>
+          <div class="card-desc">隈研吾建築、日本古美術 + 庭園。</div>
+          <div class="card-meta"><span class="card-price">¥1,500</span><span class="card-link">表參道 8 分</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%BF%A0%E7%8A%AC%E3%83%8F%E3%83%81%E5%85%AC%E5%83%8F+%E6%B8%8B%E8%B0%B7">
+        <div class="card-image bg-shopping"><div class="placeholder">🐕</div><span class="card-emoji-overlay">地標</span></div>
+        <div class="card-body">
+          <div class="card-title">忠犬八公像</div>
+          <div class="card-desc">涉谷駅前必拍打卡。</div>
+          <div class="card-meta"><span>涉谷駅</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%B8%8B%E8%B0%B7%E3%82%B9%E3%82%AF%E3%83%A9%E3%83%B3%E3%83%96%E3%83%AB%E4%BA%A4%E5%B7%AE%E7%82%B9">
+        <div class="card-image bg-view"><div class="placeholder">🚦</div><span class="card-emoji-overlay">地標</span></div>
+        <div class="card-body">
+          <div class="card-title">涉谷十字路口</div>
+          <div class="card-desc">世界最大行人交叉。俯視點：MAGNET 7F。</div>
+          <div class="card-meta"><span>涉谷</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="food">
+    <div class="section-heading">表參道・青山 ・ 午餐 / 下午茶</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%81%BE%E3%81%84%E6%B3%89+%E9%9D%92%E5%B1%B1%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-tonkatsu"><div class="placeholder">🥩</div><span class="card-emoji-overlay">炸豬排</span></div>
+        <div class="card-body">
+          <div class="card-title">まい泉 青山本店</div>
+          <div class="card-desc">1965 創業炸豬排名店，肉質柔軟。</div>
+          <div class="card-meta"><span class="card-price">¥1,800</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E8%8C%B6%E5%AF%AE%E9%83%BD%E8%B7%AF%E9%87%8C+%E8%A1%A8%E5%8F%82%E9%81%93">
+        <div class="card-image bg-dessert"><div class="placeholder">🍵</div><span class="card-emoji-overlay">抹茶</span></div>
+        <div class="card-body">
+          <div class="card-title">茶寮 都路里 表參道</div>
+          <div class="card-desc">京都抹茶聖代名店。</div>
+          <div class="card-meta"><span>抹茶</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%81%A8%E3%82%89%E3%82%84+%E8%B5%A4%E5%9D%82%E5%BA%97">
+        <div class="card-image bg-dessert"><div class="placeholder">🍡</div><span class="card-emoji-overlay">和菓子</span></div>
+        <div class="card-body">
+          <div class="card-title">虎屋 Toraya 赤坂店</div>
+          <div class="card-desc">500 年和菓子老舖。</div>
+          <div class="card-meta"><span>赤坂</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="section-heading">涉谷 ・ 燒肉晚餐 (必訂位)</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E7%84%BC%E8%82%89+USHIHACHI+%E6%B8%8B%E8%B0%B7">
+        <div class="card-image bg-yakiniku"><div class="placeholder">🥩</div><span class="card-emoji-overlay">燒肉</span></div>
+        <div class="card-body">
+          <div class="card-title">焼肉 USHIHACHI 渋谷店</div>
+          <div class="card-desc">高品質和牛燒肉。必訂位。</div>
+          <div class="card-meta"><span class="card-price">¥6,000–8,000</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E7%84%BC%E8%82%89%E3%83%88%E3%83%A9%E3%82%B8+%E6%B8%8B%E8%B0%B7%E5%BA%97">
+        <div class="card-image bg-yakiniku"><div class="placeholder">🍖</div><span class="card-emoji-overlay">燒肉</span></div>
+        <div class="card-body">
+          <div class="card-title">焼肉トラジ 渋谷店</div>
+          <div class="card-desc">關東知名燒肉連鎖。</div>
+          <div class="card-meta"><span class="card-price">¥5,000–8,000</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ DAY 4 ═════════════ -->
+<section class="day-panel" data-day="4">
+  <div class="day-header">
+    <h2>浜離宮 → 銀座二手精品 → うかい亭</h2>
+    <div class="day-header-sub">上午日式庭園 ・ 下午銀座精品 / 鐘錶 ・ 晚上鐵板燒</div>
+  </div>
+
+  <div class="cat-tabs" role="tablist">
+    <button class="cat-tab active" data-cat="route">🚶 路線</button>
+    <button class="cat-tab" data-cat="spot">📍 景點</button>
+    <button class="cat-tab" data-cat="food">🍽️ 美食</button>
+    <button class="cat-tab" data-cat="shop">🛍️ 購物</button>
+  </div>
+
+  <div class="cat-panel active" data-cat="route">
+    <div class="route">
+      <div class="route-item"><div class="route-dot">上</div><div class="route-content">
+        <div class="route-time">上午 ・ 從飯店走 8 分</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%9C%E9%9B%A2%E5%AE%AE%E6%81%A9%E8%B3%9C%E5%BA%AD%E5%9C%92+%E5%A4%A7%E6%89%8B%E9%96%80">浜離宮 大手門</a> → <a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E4%B8%AD%E5%B3%B6%E3%81%AE%E5%BE%A1%E8%8C%B6%E5%B1%8B+%E6%B5%9C%E9%9B%A2%E5%AE%AE">中島御茶屋</a></div>
+        <div class="route-desc">入園 ¥300 ・ 抹茶 + 和菓子 ¥850</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">午</div><div class="route-content">
+        <div class="route-time">中午 ・ 銀座午餐</div>
+        <div class="route-title">久兵衛 (¥6,000) 或 美登利壽司 (¥3,500)</div>
+        <div class="route-desc">見「美食」頁籤</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">下</div><div class="route-content">
+        <div class="route-time">下午 ・ 銀座二手精品 / 鐘錶</div>
+        <div class="route-title">Komehyo / GMT / Quark / RAGTAG…</div>
+        <div class="route-desc">見「購物」頁籤 (含中野 JACKROAD)</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">茶</div><div class="route-content">
+        <div class="route-time">下午茶 ・ 銀座甜點</div>
+        <div class="route-title">千疋屋 / HENRI CHARPENTIER / 虎屋</div>
+        <div class="route-desc">水果聖代、千層派、和菓子</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">夜</div><div class="route-content">
+        <div class="route-time">19:30 那輪</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E3%81%86%E3%81%8B%E3%81%84%E4%BA%AD">銀座 うかい亭</a></div>
+        <div class="route-desc">鐵板燒 ¥18,000–25,000</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="spot">
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%B5%9C%E9%9B%A2%E5%AE%AE%E6%81%A9%E8%B3%9C%E5%BA%AD%E5%9C%92+%E5%A4%A7%E6%89%8B%E9%96%80">
+        <div class="card-image bg-garden"><div class="placeholder">🌸</div><span class="card-emoji-overlay">庭園</span></div>
+        <div class="card-body">
+          <div class="card-title">浜離宮恩賜庭園</div>
+          <div class="card-desc">江戶大名庭園、東京灣海水池。從飯店走 8 分。</div>
+          <div class="card-meta"><span class="card-price">¥300</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E4%B8%AD%E5%B3%B6%E3%81%AE%E5%BE%A1%E8%8C%B6%E5%B1%8B+%E6%B5%9C%E9%9B%A2%E5%AE%AE">
+        <div class="card-image bg-garden"><div class="placeholder">🍵</div><span class="card-emoji-overlay">茶屋</span></div>
+        <div class="card-body">
+          <div class="card-title">中島御茶屋</div>
+          <div class="card-desc">浜離宮水池中央，抹茶 + 和菓子。</div>
+          <div class="card-meta"><span class="card-price">¥850</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="food">
+    <div class="section-heading">銀座 ・ 午餐</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E4%B9%85%E5%85%B5%E8%A1%9B+%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-sushi"><div class="placeholder">🍣</div><span class="card-emoji-overlay">壽司</span></div>
+        <div class="card-body">
+          <div class="card-title">銀座 久兵衛 本店 (午餐)</div>
+          <div class="card-desc">江戶前壽司殿堂，午餐套餐較親民。</div>
+          <div class="card-meta"><span class="card-price">¥6,000</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%A2%85%E4%B8%98%E5%AF%BF%E5%8F%B8%E3%81%AE%E7%BE%8E%E7%99%BB%E5%88%A9+%E9%8A%80%E5%BA%A7%E5%BA%97">
+        <div class="card-image bg-sushi"><div class="placeholder">🍣</div><span class="card-emoji-overlay">壽司</span></div>
+        <div class="card-body">
+          <div class="card-title">梅丘寿司の美登利 銀座店</div>
+          <div class="card-desc">CP 值極高排隊壽司名店。</div>
+          <div class="card-meta"><span class="card-price">¥3,500</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="section-heading">銀座 ・ 甜點下午茶</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7%E5%8D%83%E7%96%8B%E5%B1%8B+%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-dessert"><div class="placeholder">🍓</div><span class="card-emoji-overlay">水果</span></div>
+        <div class="card-body">
+          <div class="card-title">千疋屋 銀座本店</div>
+          <div class="card-desc">水果聖代 / 蛋糕，高級水果店元祖。</div>
+          <div class="card-meta"><span>水果聖代</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%82%A2%E3%83%B3%E3%83%AA%E3%83%BB%E3%82%B7%E3%83%A3%E3%83%AB%E3%83%91%E3%83%B3%E3%83%86%E3%82%A3%E3%82%A8+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-dessert"><div class="placeholder">🎂</div><span class="card-emoji-overlay">蛋糕</span></div>
+        <div class="card-body">
+          <div class="card-title">HENRI CHARPENTIER 銀座本店</div>
+          <div class="card-desc">法式蛋糕 / 千層派，可訂蛋糕。</div>
+          <div class="card-meta"><span>法式</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%81%A8%E3%82%89%E3%82%84+%E9%8A%80%E5%BA%A7%E5%BA%97">
+        <div class="card-image bg-dessert"><div class="placeholder">🍡</div><span class="card-emoji-overlay">和菓子</span></div>
+        <div class="card-body">
+          <div class="card-title">虎屋 Toraya 銀座店</div>
+          <div class="card-desc">500 年和菓子老舖。</div>
+          <div class="card-meta"><span>和菓子</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="section-heading">銀座 ・ 鐵板燒晚餐</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E9%8A%80%E5%BA%A7+%E3%81%86%E3%81%8B%E3%81%84%E4%BA%AD">
+        <div class="card-image bg-teppan"><div class="placeholder">🔥</div><span class="card-emoji-overlay">鐵板燒</span></div>
+        <div class="card-body">
+          <div class="card-title">銀座 うかい亭</div>
+          <div class="card-desc">19:30 那輪 ・ 銀座最高級鐵板燒之一。</div>
+          <div class="card-meta"><span class="card-price">¥18,000–25,000</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="shop">
+    <div class="info-banner">
+      <span class="info-banner-icon">💎</span>
+      <div><strong>銀座二手精品：</strong>LV / CHANEL / Rolex / AP 集中在中央通與並木通。中野 JACKROAD 為日本最大二手錶店，需另行前往。</div>
+    </div>
+
+    <div class="section-heading">二手精品 (包包 / 衣物)</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%82%B3%E3%83%A1%E5%85%B5+%E9%8A%80%E5%BA%A7%E4%B8%AD%E5%A4%AE%E9%80%9A+Komehyo">
+        <div class="card-image bg-shopping"><div class="placeholder">👜</div><span class="card-emoji-overlay">二手</span></div>
+        <div class="card-body">
+          <div class="card-title">Komehyo 銀座中央通店</div>
+          <div class="card-desc">最大二手精品連鎖店。</div>
+          <div class="card-meta"><span>包包 / 飾品</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%A4%A7%E9%BB%92%E5%B1%8B+%E9%8A%80%E5%BA%A7%E4%B8%AD%E5%A4%AE%E9%80%9A">
+        <div class="card-image bg-shopping"><div class="placeholder">🏷️</div><span class="card-emoji-overlay">當鋪</span></div>
+        <div class="card-body">
+          <div class="card-title">大黒屋 銀座中央通店</div>
+          <div class="card-desc">當鋪式經營，價格最便宜。</div>
+          <div class="card-meta"><span>平價二手</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=RAGTAG+%E9%8A%80%E5%BA%A7%E5%BA%97">
+        <div class="card-image bg-shopping"><div class="placeholder">👗</div><span class="card-emoji-overlay">設計師</span></div>
+        <div class="card-body">
+          <div class="card-title">RAGTAG 銀座店</div>
+          <div class="card-desc">設計師品牌 + 精品二手。</div>
+          <div class="card-meta"><span>選物店</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=BRAND+OFF+%E9%8A%80%E5%BA%A7%E5%BA%97">
+        <div class="card-image bg-shopping"><div class="placeholder">💼</div><span class="card-emoji-overlay">平價</span></div>
+        <div class="card-body">
+          <div class="card-title">BRAND OFF 銀座店</div>
+          <div class="card-desc">平價二手精品。</div>
+          <div class="card-meta"><span>連鎖</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="section-heading">二手錶 (Rolex / AP / PP)</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=GMT+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97+%E6%99%82%E8%A8%88">
+        <div class="card-image bg-watch"><div class="placeholder">⌚</div><span class="card-emoji-overlay">高端</span></div>
+        <div class="card-body">
+          <div class="card-title">GMT 銀座本店</div>
+          <div class="card-desc">AP Royal Oak / 高端 Rolex / Patek。</div>
+          <div class="card-meta"><span>高端二手</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%82%AF%E3%82%A9%E3%83%BC%E3%82%AF+Quark+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-watch"><div class="placeholder">⌚</div><span class="card-emoji-overlay">Rolex</span></div>
+        <div class="card-body">
+          <div class="card-title">Quark 銀座本店</div>
+          <div class="card-desc">Daytona / Submariner / GMT-Master 現貨。</div>
+          <div class="card-meta"><span>Rolex 專門</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Rasin+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-watch"><div class="placeholder">⌚</div><span class="card-emoji-overlay">綜合</span></div>
+        <div class="card-body">
+          <div class="card-title">Rasin ラシン 銀座本店</div>
+          <div class="card-desc">Rolex / AP / PP / Cartier 二手。</div>
+          <div class="card-meta"><span>銀座</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E3%82%B8%E3%83%A3%E3%83%83%E3%82%AF%E3%83%AD%E3%83%BC%E3%83%89+JACKROAD+%E4%B8%AD%E9%87%8E%E3%83%96%E3%83%AD%E3%83%BC%E3%83%89%E3%82%A6%E3%82%A7%E3%82%A4">
+        <div class="card-image bg-watch"><div class="placeholder">⌚</div><span class="card-emoji-overlay">中野</span></div>
+        <div class="card-body">
+          <div class="card-title">JACKROAD 中野</div>
+          <div class="card-desc">日本最大二手錶店、千件 Rolex / AP 庫存。</div>
+          <div class="card-meta"><span>中野 (需專程)</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="section-heading">銀座百貨</div>
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E4%B8%89%E8%B6%8A+%E9%8A%80%E5%BA%A7%E6%9C%AC%E5%BA%97">
+        <div class="card-image bg-shopping"><div class="placeholder">🏬</div><span class="card-emoji-overlay">百貨</span></div>
+        <div class="card-body">
+          <div class="card-title">三越 銀座本店</div>
+          <div class="card-desc">B1 食品館 + 母親節甜點。</div>
+          <div class="card-meta"><span>銀座</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%9D%BE%E5%B1%8B%E9%8A%80%E5%BA%A7">
+        <div class="card-image bg-shopping"><div class="placeholder">🏬</div><span class="card-emoji-overlay">百貨</span></div>
+        <div class="card-body">
+          <div class="card-title">松屋銀座</div>
+          <div class="card-desc">餐瓷、漆器、傳統工藝。</div>
+          <div class="card-meta"><span>銀座</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=UNIQLO+%E9%8A%80%E5%BA%A7%E6%97%97%E8%89%A6%E5%BA%97">
+        <div class="card-image bg-shopping"><div class="placeholder">👕</div><span class="card-emoji-overlay">旗艦</span></div>
+        <div class="card-body">
+          <div class="card-title">UNIQLO 銀座旗艦店</div>
+          <div class="card-desc">12 層全球旗艦店。</div>
+          <div class="card-meta"><span>銀座</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ DAY 5 ═════════════ -->
+<section class="day-panel" data-day="5">
+  <div class="day-header">
+    <h2>最後採買 ・ 羽田歸途</h2>
+    <div class="day-header-sub">東京車站伴手禮 ・ 09:45 專車出發 ・ 12:40 起飛</div>
+  </div>
+
+  <div class="cat-tabs" role="tablist">
+    <button class="cat-tab active" data-cat="route">🚶 路線</button>
+    <button class="cat-tab" data-cat="shop">🎁 伴手禮</button>
+  </div>
+
+  <div class="cat-panel active" data-cat="route">
+    <div class="info-banner">
+      <span class="info-banner-icon">⏰</span>
+      <div><strong>當日重要時間：</strong>大丸 9:00 開門 ・ 09:45 飯店專車出發 ・ 10:40 報到截止 ・ 12:40 起飛</div>
+    </div>
+    <div class="route">
+      <div class="route-item"><div class="route-dot">早</div><div class="route-content">
+        <div class="route-time">9:00 開門</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E5%A4%A7%E4%B8%B8%E6%9D%B1%E4%BA%AC%E5%BA%97+B1">大丸東京 B1</a></div>
+        <div class="route-desc">伴手禮一站式 ・ 東京車站直結。</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">續</div><div class="route-content">
+        <div class="route-time">站內順遊</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E6%9D%B1%E4%BA%AC%E9%8A%98%E8%8F%93+%E3%82%B0%E3%83%A9%E3%83%B3%E3%82%B9%E3%82%BF+%E6%9D%B1%E4%BA%AC%E9%A7%85">Gransta 東京駅</a></div>
+        <div class="route-desc">Press Butter Sand、東京 Banana。</div>
+      </div></div>
+      <div class="route-item"><div class="route-dot">✈️</div><div class="route-content">
+        <div class="route-time">09:45 專車出發</div>
+        <div class="route-title"><a target="_blank" href="https://www.google.com/maps/search/?api=1&query=%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF+%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB+EVA%E8%88%AA%E7%A9%BA">羽田 T3 EVA 航空櫃台</a></div>
+        <div class="route-desc">10:40 報到截止 ・ 12:40 起飛</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="cat-panel" data-cat="shop">
+    <div class="cards">
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E5%A4%A7%E4%B8%B8%E6%9D%B1%E4%BA%AC%E5%BA%97+B1">
+        <div class="card-image bg-station"><div class="placeholder">🎁</div><span class="card-emoji-overlay">B1</span></div>
+        <div class="card-body">
+          <div class="card-title">大丸東京 B1</div>
+          <div class="card-desc">東京車站直結 ・ 伴手禮一站式採購。9:00 開門。</div>
+          <div class="card-meta"><span>東京駅</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E6%9D%B1%E4%BA%AC%E9%8A%98%E8%8F%93+%E3%82%B0%E3%83%A9%E3%83%B3%E3%82%B9%E3%82%BF+%E6%9D%B1%E4%BA%AC%E9%A7%85">
+        <div class="card-image bg-station"><div class="placeholder">🍪</div><span class="card-emoji-overlay">站內</span></div>
+        <div class="card-body">
+          <div class="card-title">Gransta 東京駅</div>
+          <div class="card-desc">站內伴手禮街，Press Butter Sand、東京 Banana。</div>
+          <div class="card-meta"><span>站內</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+      <a class="card" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF+%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB+EVA%E8%88%AA%E7%A9%BA">
+        <div class="card-image bg-view"><div class="placeholder">✈️</div><span class="card-emoji-overlay">機場</span></div>
+        <div class="card-body">
+          <div class="card-title">羽田 T3 EVA 航空</div>
+          <div class="card-desc">10:40 報到截止 ・ 12:40 起飛。</div>
+          <div class="card-meta"><span>第 3 航廈</span><span class="card-link">看地圖 →</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  ─ 旅 途 平 安 ─
+  <div class="signature">阿 民 阿 慧 遊 東 京</div>
+  <div style="margin-top: 14px; opacity: 0.7;">
+    點任一地點 ・ 直接開 Google Maps<br>
+    可加入「已收藏」存到 Google 地圖內離線使用
+  </div>
+</footer>
+
+<script>
+  // Day tab switching
+  const dayTabs = document.querySelectorAll('.day-tab');
+  const dayPanels = document.querySelectorAll('.day-panel');
+  dayTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const day = tab.dataset.day;
+      dayTabs.forEach(t => t.classList.remove('active'));
+      dayPanels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector(`.day-panel[data-day="${day}"]`).classList.add('active');
+      // scroll to top of panel
+      window.scrollTo({ top: document.querySelector('.day-tabs').offsetTop - 1, behavior: 'smooth' });
+    });
+  });
+
+  // Category tab switching (per day)
+  document.querySelectorAll('.day-panel').forEach(panel => {
+    const catTabs = panel.querySelectorAll('.cat-tab');
+    const catPanels = panel.querySelectorAll('.cat-panel');
+    catTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const cat = tab.dataset.cat;
+        catTabs.forEach(t => t.classList.remove('active'));
+        catPanels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        panel.querySelector(`.cat-panel[data-cat="${cat}"]`).classList.add('active');
+      });
+    });
+  });
+
+  // Load images from Unsplash by keyword (graceful fallback to gradient)
+  // Each card has bg-* gradient + emoji as fallback. If image loads, it covers the gradient.
+  const imageMap = {
+    'Caretta 汐留': 'shiodome tokyo skyline',
+    'GINZA SIX': 'ginza tokyo shopping',
+    '和光本店': 'ginza wako clock tower',
+    '伊東屋 銀座本店': 'stationery japan',
+    'Maison Hermès Forum': 'hermes building tokyo',
+    '銀座 久兵衛 本店': 'sushi nigiri',
+    '銀座 久兵衛 本店 (午餐)': 'sushi nigiri',
+    '煉瓦亭': 'omurice japanese',
+    '資生堂 Parlour 銀座本店': 'japanese yoshoku',
+    '銀座 鰻 はし本': 'unagi rice',
+    '響 Hibiki Caretta 46F': 'tokyo tower view restaurant',
+    '雷門': 'kaminarimon asakusa',
+    '仲見世通': 'nakamise asakusa',
+    '淺草寺 本堂': 'sensoji temple',
+    '浅草神社': 'asakusa shrine',
+    'teamLab Planets TOKYO': 'teamlab digital art',
+    '大黒家天麩羅': 'tendon tempura',
+    '駒形どぜう': 'japanese hot pot',
+    '淺草今半 別館': 'sukiyaki beef',
+    '銀座 篝': 'tori paitan ramen',
+    '明治神宮 原宿口': 'meiji shrine torii',
+    '明治神宮 御本殿': 'meiji shrine',
+    'AMORE 青山店': 'vintage handbags',
+    '根津美術館': 'nezu museum tokyo',
+    '忠犬八公像': 'hachiko shibuya statue',
+    '涉谷十字路口': 'shibuya crossing',
+    'まい泉 青山本店': 'tonkatsu pork',
+    '茶寮 都路里 表參道': 'matcha parfait',
+    '虎屋 Toraya 赤坂店': 'wagashi japan',
+    '虎屋 Toraya 銀座店': 'wagashi japan',
+    '焼肉 USHIHACHI 渋谷店': 'wagyu yakiniku',
+    '焼肉トラジ 渋谷店': 'yakiniku grill',
+    '浜離宮恩賜庭園': 'hamarikyu garden tokyo',
+    '中島御茶屋': 'japanese tea house garden',
+    '梅丘寿司の美登利 銀座店': 'sushi restaurant',
+    '千疋屋 銀座本店': 'fruit parfait',
+    'HENRI CHARPENTIER 銀座本店': 'french pastry mille feuille',
+    '銀座 うかい亭': 'teppanyaki wagyu',
+    'Komehyo 銀座中央通店': 'luxury handbags',
+    '大黒屋 銀座中央通店': 'luxury bags',
+    'RAGTAG 銀座店': 'designer fashion store',
+    'BRAND OFF 銀座店': 'luxury bags',
+    'GMT 銀座本店': 'luxury watch rolex',
+    'Quark 銀座本店': 'rolex watch',
+    'Rasin ラシン 銀座本店': 'luxury watch',
+    'JACKROAD 中野': 'watch shop japan',
+    '三越 銀座本店': 'mitsukoshi department store',
+    '松屋銀座': 'tokyo department store',
+    'UNIQLO 銀座旗艦店': 'uniqlo flagship',
+    '大丸東京 B1': 'tokyo station souvenirs',
+    'Gransta 東京駅': 'tokyo station shopping',
+    '羽田 T3 EVA 航空': 'haneda airport terminal'
+  };
+
+  document.querySelectorAll('.card').forEach(card => {
+    const title = card.querySelector('.card-title')?.textContent?.trim();
+    if (!title) return;
+    const keyword = imageMap[title];
+    if (!keyword) return;
+    const imageDiv = card.querySelector('.card-image');
+    if (!imageDiv) return;
+    const img = document.createElement('img');
+    img.alt = title;
+    img.loading = 'lazy';
+    img.src = `https://source.unsplash.com/featured/400x250/?${encodeURIComponent(keyword)}`;
+    img.onerror = () => img.remove();
+    imageDiv.insertBefore(img, imageDiv.firstChild);
+  });
+</script>
+
+</body>
+</html>
