@@ -3,14 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- 安全性：內容安全政策（GitHub Pages 無法設定 HTTP 標頭，改以 meta 交付）。
+       允許自身資源、Tesseract.js CDN 與其語言模型、以及使用者自訂的 Google Apps Script 同步端點。 -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    base-uri 'self';
+    object-src 'none';
+    img-src 'self' data: blob:;
+    media-src 'self' blob:;
+    style-src 'self' 'unsafe-inline';
+    font-src 'self';
+    manifest-src 'self';
+    script-src 'self' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net;
+    worker-src 'self' blob:;
+    connect-src 'self' blob: data: https://cdn.jsdelivr.net https://tessdata.projectnaptha.com https://script.google.com https://script.googleusercontent.com;
+    form-action 'self';
+    upgrade-insecure-requests;
+  ">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- SEO -->
+  <title>發票掃描 — 線上 OCR 台灣發票辨識與會計分類 | Stimlig</title>
+  <meta name="description" content="免費線上發票掃描工具：拍照即用 OCR 自動辨識台灣發票的店家、金額、統一編號與發票號碼，自動歸類至會計科目並匯出 CSV。資料留存手機本地、可離線使用、免安裝。">
+  <meta name="keywords" content="發票掃描,發票辨識,OCR,台灣發票,統一編號,會計科目,記帳,報稅,CSV 匯出,雲端發票">
+  <meta name="author" content="Stimlig">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://www.stimlig.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="發票掃描">
+  <meta property="og:title" content="發票掃描 — 線上 OCR 台灣發票辨識與會計分類">
+  <meta property="og:description" content="拍照即用 OCR 自動辨識台灣發票的店家、金額、統一編號，自動歸類會計科目並匯出 CSV。免安裝、可離線、資料留存本地。">
+  <meta property="og:url" content="https://www.stimlig.com/">
+  <meta property="og:image" content="https://www.stimlig.com/icons/icon-512.svg">
+  <meta property="og:locale" content="zh_TW">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="發票掃描 — 線上 OCR 台灣發票辨識與會計分類">
+  <meta name="twitter:description" content="拍照即用 OCR 自動辨識台灣發票，自動歸類會計科目並匯出 CSV。免安裝、可離線、資料留存本地。">
+  <meta name="twitter:image" content="https://www.stimlig.com/icons/icon-512.svg">
+
+  <!-- PWA / Apple -->
   <meta name="theme-color" content="#0a84ff">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="發票掃描">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
   <link rel="stylesheet" href="css/styles.css">
-  <title>發票掃描</title>
+
+  <!-- 結構化資料：協助搜尋引擎理解這是一個免費的網頁應用程式 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "發票掃描",
+    "url": "https://www.stimlig.com/",
+    "description": "拍照即用 OCR 自動辨識台灣發票的店家、金額、統一編號與發票號碼，自動歸類至會計科目並匯出 CSV，資料留存手機本地、可離線使用。",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web, iOS, Android",
+    "browserRequirements": "Requires JavaScript. Requires HTML5.",
+    "inLanguage": "zh-Hant",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "TWD"
+    }
+  }
+  </script>
 </head>
 <body>
   <main id="app">
@@ -230,8 +296,8 @@
   <!-- toast 訊息 -->
   <div id="toast" class="toast" role="status" hidden></div>
 
-  <!-- Tesseract.js 從 CDN 載入 -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js"></script>
+  <!-- Tesseract.js 從 CDN 載入（鎖定版本，避免供應鏈被替換） -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

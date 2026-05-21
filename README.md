@@ -13,7 +13,7 @@
 
 ### 用法
 
-1. 用手機瀏覽器（建議 Safari / Chrome）打開部署網址（部署完後填入這裡）
+1. 用手機瀏覽器（建議 Safari / Chrome）打開 https://www.stimlig.com
 2. iOS 點 **分享 → 加入主畫面**，之後就像原生 App
 3. 第一次掃描時會下載繁中 OCR 模型（約 12 MB），之後完全離線
 

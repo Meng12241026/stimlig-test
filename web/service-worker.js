@@ -1,7 +1,7 @@
 // 簡易 Service Worker：static assets 採 cache-first，
 // 讓 App 加到主畫面後可離線啟動。Tesseract.js 模型由 Tesseract 自行管理。
 
-const CACHE = 'stimlig-v3';
+const CACHE = 'stimlig-v4';
 const ASSETS = [
   './',
   'index.html',
